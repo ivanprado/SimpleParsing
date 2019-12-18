@@ -1,5 +1,10 @@
-"""Simple, Elegant Argument parsing.
-@author: Fabrice Normandin
+"""
+* .. autoclass:: simple_parsing.ArgumentParser
+    :members: add_arguments
+    :undoc-members:
+    :show-inheritance:
+* .. autoclass:: simple_parsing.ConflictResolution
+    :members:
 """
 import argparse
 import collections
@@ -14,9 +19,6 @@ import warnings
 from collections import defaultdict, namedtuple
 from typing import *
 
-
-# logging.basicConfig(level=logging.WARN)
-# logger = logging.getLogger("simple_parsing")
 logger = logging.getLogger(__name__)
 
 from . import docstring, utils
@@ -28,12 +30,12 @@ Conflict = Tuple[DataclassType, str, List[DataclassWrapper]]
 class ConflictResolution(enum.Enum):
     """Used to determine which action to take when adding arguments for the same dataclass in two different destinations.
     
-    - NONE: Dissallow using the same dataclass in two different destinations without explicitly setting a distinct prefix for at least one of them.
-    - EXPLICIT: When adding arguments for a dataclass that is already present, the argparse arguments for each class will use their full absolute path as a prefix.
-    - ALWAYS_MERGE: When adding arguments for a dataclass that is already present, the arguments for the first and second destinations will be set using the same name, 
-        and the values for each will correspond to the first and second passed values, respectively.
-        This will change the argparse type for that argument into a list of the original item type.
-    - AUTO: TODO:
+    * NONE: Dissallow using the same dataclass in two different destinations without explicitly setting a distinct prefix for at least one of them.
+    * EXPLICIT: When adding arguments for a dataclass that is already present, the argparse arguments for each class will use their full absolute path as a prefix.
+    * ALWAYS_MERGE: When adding arguments for a dataclass that is already present, the arguments for the first and second destinations will be set using the same name,
+      and the values for each will correspond to the first and second passed values, respectively.
+      This will change the argparse type for that argument into a list of the original item type.
+    * AUTO: Automatically deduces the shortest prefix which can be used to differentiate the arguments. 
     
     """
     NONE = -1
@@ -42,9 +44,13 @@ class ConflictResolution(enum.Enum):
     AUTO = 2
 
 class ArgumentParser(argparse.ArgumentParser):
+    """Subclass of `argparse.ArgumentParser` which adds the `add_arguments` method,
+    making it possible to automatically add command-line arguments for a given dataclass.
+    """
     def __init__(self, conflict_resolution: ConflictResolution = ConflictResolution.AUTO, *args, **kwargs):
         if "formatter_class" not in kwargs:
             kwargs["formatter_class"] = utils.Formatter
+        
         super().__init__(*args, **kwargs)
         # the kind of prefixing mechanism to use.
         self.conflict_resolution = conflict_resolution
@@ -53,24 +59,21 @@ class ArgumentParser(argparse.ArgumentParser):
         self._wrappers: Dict[DataclassType, Dict[str, List[DataclassWrapper]]] = defaultdict(lambda: defaultdict(list))
 
         self._fixed_wrappers: Dict[DataclassType, Dict[str, DataclassWrapper]]
-
+        
         self.constructor_arguments: Dict[str, Dict[str, Any]] = defaultdict(dict)
 
         # # a set to check which arguments have been added so far.
         # self.added_arguments: Set[str] = set()
-
     def add_arguments(self, dataclass: DataclassType, dest: str, prefix=""):
         """Adds corresponding command-line arguments for this class to the parser.
         
-        Arguments:
-            dataclass {DataclassType} -- The dataclass for which to add fields as arguments in the parser
-        
-        Keyword Arguments:
-            dest {str} -- The destination attribute of the `argparse.Namespace` where the dataclass instance will be stored after calling `parse_args()`
-            prefix {str} -- An optional prefix to add prepend to the names of the argparse arguments which will be generated for this dataclass.
-            This can be useful when registering multiple distinct instances of the same dataclass.
-
-        """
+        :param dataclass: The dataclass for which to add fields as arguments in the parser
+        :type dataclass: DataclassType
+        :param dest: The destination attribute of the `argparse.Namespace` where the dataclass instance will be stored after calling `parse_args()`
+        :type dest: str
+        :param prefix: An optional prefix to add prepend to the names of the argparse arguments which will be generated for this dataclass. This can be useful when registering multiple distinct instances of the same dataclass. Defaults to ""
+        :type prefix: str, optional
+        """        
         for prefix, wrappers in self._wrappers[dataclass].items():
             destinations = [wrapper.dest for wrapper in wrappers]
             if dest in destinations:
@@ -83,7 +86,7 @@ class ArgumentParser(argparse.ArgumentParser):
         wrapper = self._register_dataclass(new_wrapper)
         logger.debug(f"added wrapper:\n{wrapper}\n")
 
-    def parse_known_args(self, args=None, namespace=None):
+    def parse_known_args(self, args=None, namespace=None):     
         # NOTE: since the usual ArgumentParser.parse_args() calls parse_known_args, we therefore just need to overload the parse_known_args method.
         self._preprocessing()
         parsed_args, unparsed_args = super().parse_known_args(args, namespace)

@@ -160,7 +160,7 @@ class ConflictResolver:
         for wrapper in all_wrappers:
             for field in wrapper.fields:
                 # TODO: figure out a better "identifier" to use?
-                conflicts[field.option_strings[0]].append(field)
+                conflicts[field.option_string].append(field)
         
         for argument_name, fields in conflicts.items():
             if len(fields) > 1:
@@ -177,7 +177,7 @@ class ConflictResolver:
         arg_names: Set[str] = set()
         for wrapper in all_wrappers:
             for field in wrapper.fields:
-                if field.option_strings[0] in arg_names:
+                if field.option_string in arg_names:
                     return True
-                arg_names.add(field.option_strings[0])
+                arg_names.add(field.option_string)
         return False

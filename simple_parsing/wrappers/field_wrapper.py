@@ -169,9 +169,9 @@ class FieldWrapper(Generic[T]):
         return [parent_dest + "." + self.name for parent_dest in self.parent.destinations]
 
     @property
-    def option_strings(self) -> List[str]:
+    def option_string(self) -> str:
         prefix: str = self.parent.prefix
-        return [f"--{prefix}{self.name}"]
+        return f"--{prefix}{self.name}"
 
     @property
     def dest(self) -> str:
@@ -297,6 +297,7 @@ class FieldWrapper(Generic[T]):
                     _arg_options["default"] = [enum_to_str(default) for default in self.defaults]
         
         elif self.is_choice:
+            assert self.field.metadata
             _arg_options["choices"] = self.field.metadata["choices"]
 
         elif self.is_list:

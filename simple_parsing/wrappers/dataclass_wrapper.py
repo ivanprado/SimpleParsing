@@ -63,7 +63,7 @@ class DataclassWrapper(Generic[Dataclass]):
             if wrapped_field.arg_options:
                 logger.debug(f"Arg options for field '{wrapped_field.name}': {wrapped_field.arg_options}")
                 # TODO: CustomAction isn't very easy to debug, and is not working. Maybe look into that. Simulating it for now.
-                group.add_argument(*wrapped_field.option_strings, **wrapped_field.arg_options)
+                group.add_argument(wrapped_field.option_string, **wrapped_field.arg_options)
 
 
     @property

@@ -82,10 +82,10 @@ class TestSetup():
         import contextlib
         from io import StringIO
         f = StringIO()
-        with contextlib.suppress(SystemExit), contextlib.redirect_stdout(f):
-            _ = cls.setup("--help", conflict_resolution_mode=conflict_resolution_mode)
-        s = f.getvalue()
-        return s
+        parser = ArgumentParser()
+        parser.add_arguments(cls, dest=camel_case(cls.__name__))
+        parser.print_help(f)
+        return f.getvalue()
 
 
 ListFormattingFunction = Callable[[List[Any]], str]

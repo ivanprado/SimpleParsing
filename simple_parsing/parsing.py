@@ -12,6 +12,7 @@ import textwrap
 import typing
 import warnings
 from typing import *
+from typing import IO
 
 from . import utils
 from .conflicts import ConflictResolution, ConflictResolver
@@ -65,6 +66,11 @@ class ArgumentParser(argparse.ArgumentParser):
         parsed_args, unparsed_args = super().parse_known_args(args, namespace)
         parsed_args = self._postprocessing(parsed_args)
         return parsed_args, unparsed_args
+    
+    def print_help(self, file: IO[str] = None):
+        if not self._preprocessing_done:
+            self._preprocessing()
+        super().print_help(file)
 
     def _preprocessing(self) -> None:
         """Resolve potential conflicts before actually adding all the required arguments."""

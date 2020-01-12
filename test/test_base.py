@@ -161,7 +161,6 @@ def test_passing_default_value(simple_attribute, silent):
     parser = ArgumentParser()
     some_class = SomeClass.setup(default=SomeClass(expected_value))
     assert some_class.a == expected_value
-<<<<<<< HEAD
 
 def test_parsing_twice_throws_error():
     @dataclass
@@ -174,5 +173,3 @@ def test_parsing_twice_throws_error():
     assert args.foo.a == 123, vars(args)
     args = parser.parse_args("--a 456".split())
     assert args.foo.a == 456, vars(args)
-=======
->>>>>>> Add More Tests for Conflicting Arg Names
